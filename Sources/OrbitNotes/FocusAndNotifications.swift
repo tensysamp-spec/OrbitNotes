@@ -92,7 +92,8 @@ final class FocusTimer: ObservableObject {
         endDate = Date().addingTimeInterval(remaining)
         Notifications.shared.scheduleTimerEnd(in: remaining, isBreak: phase == .breakTime)
         ticker = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
+            guard let self else { return }
+            Task { @MainActor in self.tick() }
         }
     }
 
