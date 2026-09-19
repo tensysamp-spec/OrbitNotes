@@ -89,7 +89,8 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            pal.bg.ignoresSafeArea()
+            VisualEffect(material: pal.isLight ? .contentBackground : .hudWindow).ignoresSafeArea()
+            pal.bg.opacity(pal.isLight ? 0.55 : 0.72).ignoresSafeArea()
             if grid { GridPaper(color: pal.dim.opacity(0.18)).ignoresSafeArea() }
 
             VStack(spacing: 0) {
@@ -112,6 +113,7 @@ struct ContentView: View {
         }
         .foregroundStyle(pal.text)
         .tint(pal.accent)
+        .background(WindowConfigurator())
         .preferredColorScheme(pal.isLight ? .light : .dark)
         .overlay(alignment: .top) { if let f = flash { toast(f) } }
         .alert("Software Update", isPresented: Binding(
@@ -179,11 +181,15 @@ struct ContentView: View {
 
     private func updateBar(_ release: UpdateChecker.Release) -> some View {
         HStack(spacing: 8) {
-            Text("update \(release.version) available").foregroundStyle(pal.accent)
+            Text(updater.installState ?? "update \(release.version) available")
+                .foregroundStyle(pal.accent)
             Spacer()
-            Button("get") { NSWorkspace.shared.open(release.downloadURL); updater.available = nil }
-                .buttonStyle(.plain).foregroundStyle(pal.result)
-            Button("skip") { updater.skip(release.version) }.buttonStyle(.plain).foregroundStyle(pal.dim)
+            if updater.installState == nil {
+                Button("update") { updater.downloadAndInstall(release) }
+                    .buttonStyle(.plain).foregroundStyle(pal.result)
+                Button("skip") { updater.skip(release.version) }
+                    .buttonStyle(.plain).foregroundStyle(pal.dim)
+            }
         }
         .font(.system(size: 11, design: .monospaced))
         .padding(.horizontal, 14).padding(.vertical, 6)
@@ -221,14 +227,14 @@ struct ContentView: View {
         }
     }
 
-    // MARK: Inline ":" commands (run when the line is completed with Enter)
+    // MARK: Inline command lines (":" or "/"), run when completed with Enter
 
     private func handleBody(_ text: String) {
         guard text.hasSuffix("\n") else { return }
         var lines = text.components(separatedBy: "\n")
         guard lines.count >= 2 else { return }
         let completed = lines[lines.count - 2]
-        guard completed.hasPrefix(":") else { return }
+        guard completed.hasPrefix(":") || completed.hasPrefix("/") else { return }
         // Strip the command line from the note it was typed in, by id,
         // BEFORE running (the command may change which note is selected).
         let editedID = store.selectedID
@@ -334,4 +340,36 @@ struct GridPaper: View {
             .stroke(color, lineWidth: 0.5)
         }
     }
+}
+
+// MARK: - Translucency
+
+struct VisualEffect: NSViewRepresentable {
+    let material: NSVisualEffectView.Material
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let v = NSVisualEffectView()
+        v.material = material
+        v.blendingMode = .behindWindow
+        v.state = .active
+        return v
+    }
+    func updateNSView(_ v: NSVisualEffectView, context: Context) { v.material = material }
+}
+
+/// Makes the hosting window non-opaque so the translucency shows the desktop,
+/// and hides the title bar for a clean scratchpad look.
+struct WindowConfigurator: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let v = NSView()
+        DispatchQueue.main.async {
+            guard let w = v.window else { return }
+            w.isOpaque = false
+            w.backgroundColor = .clear
+            w.titlebarAppearsTransparent = true
+            w.titleVisibility = .hidden
+            w.styleMask.insert(.fullSizeContentView)
+        }
+        return v
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {}
 }
