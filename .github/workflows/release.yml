@@ -24,7 +24,7 @@ jobs:
           fi
 
       - name: Build DMG
-        run: ./scripts/build_dmg.sh "${{ steps.ver.outputs.version }}"
+        run: bash scripts/build_dmg.sh "${{ steps.ver.outputs.version }}"
 
       - name: Upload DMG as workflow artifact
         uses: actions/upload-artifact@v4
