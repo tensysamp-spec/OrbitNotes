@@ -22,12 +22,12 @@ struct CodeTextView: NSViewRepresentable {
         tv.insertionPointColor = pal.nsAccent
         tv.textContainerInset = NSSize(width: 10, height: 14)
         tv.minSize = NSSize(width: 0, height: 0)
-        tv.maxSize = NSSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+        tv.maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
         tv.isVerticallyResizable = true
         tv.isHorizontallyResizable = false
         tv.autoresizingMask = [.width]
         tv.textContainer?.widthTracksTextView = true
-        tv.textContainer?.containerSize = NSSize(width: 0, height: .greatestFiniteMagnitude)
+        tv.textContainer?.containerSize = NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude)
         tv.string = text
         tv.highlight()
 
@@ -85,13 +85,11 @@ final class ResultTextView: NSTextView {
             let loc = lineRange.location
             let ns = line as NSString
 
-            // title = first line
             if loc == 0 {
                 ts.addAttribute(.foregroundColor, value: self.pal.nsAccent, range: lineRange)
                 ts.addAttribute(.font, value: boldFont, range: lineRange)
             }
 
-            // checkbox lines
             if ns.hasPrefix("[x]") {
                 ts.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: lineRange)
                 ts.addAttribute(.foregroundColor, value: self.pal.nsDim, range: lineRange)
@@ -100,7 +98,6 @@ final class ResultTextView: NSTextView {
                 ts.addAttribute(.foregroundColor, value: self.pal.nsDim, range: NSRange(location: loc, length: 3))
             }
 
-            // label before ":" (only if it's not the title line)
             if loc != 0 {
                 let colon = ns.range(of: ":").location
                 if colon != NSNotFound, colon < 40 {
@@ -109,7 +106,6 @@ final class ResultTextView: NSTextView {
                 }
             }
 
-            // numbers
             if let re = ResultTextView.number {
                 re.enumerateMatches(in: self.string, options: [], range: lineRange) { m, _, _ in
                     if let r = m?.range { ts.addAttribute(.foregroundColor, value: self.pal.nsText, range: r) }
