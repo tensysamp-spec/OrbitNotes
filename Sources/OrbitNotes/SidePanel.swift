@@ -428,7 +428,7 @@ struct ToolsView: View {
                 Text("=").foregroundStyle(.secondary)
                 Text(resultString(result))
                     .font(.system(.title3, design: .monospaced).weight(.semibold))
-                    .foregroundStyle(result == nil && !calcInput.isEmpty ? .secondary : Theme.accentStart)
+                    .foregroundStyle(result == nil && !calcInput.isEmpty ? Color.secondary : Theme.accentStart)
                     .textSelection(.enabled)
                 Spacer()
                 if result != nil {
