@@ -15,7 +15,7 @@ struct OrbitNotesApp: App {
                 .environmentObject(store)
                 .environmentObject(updater)
                 .environmentObject(timer)
-                .frame(minWidth: 900, minHeight: 560)
+                .frame(minWidth: 340, idealWidth: 420, maxWidth: 900, minHeight: 480, idealHeight: 760, maxHeight: .infinity)
                 .onAppear {
                     Notifications.shared.setup()
                     updater.checkIfDue()
